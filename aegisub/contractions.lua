@@ -56,6 +56,7 @@ contractions = {
     ["have not"] = "haven't",
     ["must not"] = "mustn't",
     ["let us"] = "let's",
+    ["must have"] = "must've",
     
     ["Cannot"] = "Can't",
     ["Can not"] = "Can't",
@@ -68,6 +69,7 @@ contractions = {
     ["Have not"] = "Haven't",
     ["Must not"] = "Mustn't",
     ["Let us"] = "Let's",
+    ["Must have"] = "Must've",
 }
 
 -- apply valid contractions to a subtitles object
