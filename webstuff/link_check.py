@@ -7,7 +7,7 @@ from BeautifulSoup import BeautifulSoup
 import urllib2
 import re
 
-# page to get info, replace with whatever
+# page to get info, replace with whatever (no trailing slash)
 url = "http://escience.washington.edu"
 
 # get/store info from page
