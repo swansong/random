@@ -1,6 +1,6 @@
 # Link Check goes through a URL, requests every link on the page, and prints
-#	out the requested links and their respective status codes. It also saves
-#	the statuses to requests.txt for further perusal.
+#	out the requested links and their respective status codes. It can also
+#	write the results to a text or log file.
 # By Jeff Chheng
 
 from BeautifulSoup import BeautifulSoup
@@ -71,8 +71,8 @@ def get_links(url):
 
 #-------------------------------------------------------------------------------
 # check_links
-#	Check a list of links and print results of requests to stdout. Optionally,
-#	write results to a file.
+#	Check a list of links and print results of requests to stdout.
+#	Optionally, write results to a file.
 #	Parameters:
 #	-- links: a list of links
 #	-- log: a file to write the logs to
