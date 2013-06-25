@@ -37,7 +37,7 @@ def parse_args():
 # get_links
 #	Get links from a specified url.
 #	Parameters:
-#		-- url: a url to retrieve links from
+#	-- url: a url to retrieve links from
 #	Return a list of the links.
 def get_links(url):
 	# remove trailing slashes
@@ -74,8 +74,8 @@ def get_links(url):
 #	Check a list of links and print results of requests to stdout. Optionally,
 #	write results to a file.
 #	Parameters:
-#		-- links: a list of links
-#		-- log: a file to write the logs to
+#	-- links: a list of links
+#	-- log: a file to write the logs to
 def check_links(links, log):
 	if log:
 		file = open(log, "w")
