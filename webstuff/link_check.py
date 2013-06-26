@@ -25,6 +25,7 @@ def parse_args():
 	
 	args = parser.parse_args()
 	links = get_links(args.link[0])
+	
 	if links:
 		if args.log:
 			check_links(links, args.log[0])
@@ -58,8 +59,10 @@ def get_links(url):
 	# format links
 	for link in a:
 		href = link["href"]
+		# href is complete link
 		if "http://" in href or "https://" in href:
 			links.append(href)
+		# href is a relative link
 		else:
 			if href.startswith("/"):
 				links.append("".join([url, href]))
@@ -68,7 +71,6 @@ def get_links(url):
 	
 	return links
 	
-
 #-------------------------------------------------------------------------------
 # check_links
 #	Check a list of links and print results of requests to stdout.
@@ -77,14 +79,20 @@ def get_links(url):
 #	-- links: a list of links
 #	-- log: a file to write the logs to
 def check_links(links, log):
+	links_checked = 0
+	errors_found = 0
+	
 	if log:
-		file = open(log, "w")
+		f = open(log, "w")
 	else:
-		file = None
+		f = None
 
 	# request each link
 	for link in links:
-		requesting = "Requesting %s" % link
+		# increment links checked
+		links_checked += 1
+	
+		requesting = "Requesting " + link
 		print requesting
 		
 		try:
@@ -93,22 +101,39 @@ def check_links(links, log):
 
 			# check HTTP status code
 			if code == 200:
-				status = "200 OK\n"
+				status = "200 OK"
 			else:
-				status = "%s ERROR\n" % code
+				# increment errors found
+				errors_found += 1
+				
+				status = "%d ERROR" % code
 			
 			print status
+			print
 			
-			if file:
-				file.write("%s\n" % requesting)
-				file.write("%s\n" % status)
+			if f:
+				f.write(requesting + '\n')
+				f.write(status + '\n\n')
 			
 		except urllib2.HTTPError, e:
-			error = "%s\n" % e
-			print error
-			if file:
-				file.write("%s\n" % requesting)
-				file.write("%s\n" % error)
+			# increment errors found
+			errors_found += 1
+			
+			print e
+			print
+	
+			if f:
+				f.write(requesting + '\n')
+				f.write("%s\n\n" % e)
+	
+	results = "Links checked: %4d" % links_checked
+	errors = "Errors found:  %4d" % errors_found
+	print results
+	print errors
+	
+	if f:
+		f.write(results + '\n')
+		f.write(errors + '\n')
 
 if __name__ == '__main__':
 	parse_args()
