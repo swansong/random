@@ -44,9 +44,6 @@ def get_links(url):
 	# remove trailing slashes
 	while url.endswith("/"):
 		url = url[:-1]
-	# remove starting slashes because ???
-	while url.startswith("/"):
-		url = url[1:]
 		
 	try:
 		# get/store info from page
@@ -62,13 +59,17 @@ def get_links(url):
 	# format links
 	for link in a:
 		href = link["href"]
-		# href is complete link
-		if "www." in href or "http://" in href or "https://" in href:
-			links.append(href)
-		# href is a relative link
-		else:
-			if href.startswith("/"):
-				links.append("".join([url, href]))
+		
+		# disregard mailto links and http://# because ???
+		if "mailto:" not in href and "http://#" not in href:
+			# add http to links or else urllib2 will complain
+			if href.startswith("//"):
+				href = "http:" + href
+			
+			# href is complete link
+			if "http://" in href or "https://" in href:
+				links.append(href)
+			# href is a relative link
 			else:
 				links.append("/".join([url, href]))
 	
