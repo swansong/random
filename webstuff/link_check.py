@@ -60,7 +60,7 @@ def get_links(url):
 	for link in a:
 		href = link["href"]
 		# href is complete link
-		if "http://" in href or "https://" in href:
+		if "www." in href or "http://" in href or "https://" in href:
 			links.append(href)
 		# href is a relative link
 		else:
