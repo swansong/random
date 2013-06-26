@@ -99,9 +99,9 @@ def check_links(links, log):
 			request = urllib2.urlopen(link)
 			code = request.getcode()
 
-			# check HTTP status code
-			if code == 200:
-				status = "200 OK"
+			# 2xx is considered a successful request
+			if code >= 200 and code <= 300:
+				status = "%d OK" % code
 			else:
 				# increment errors found
 				errors_found += 1
