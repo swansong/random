@@ -44,6 +44,9 @@ def get_links(url):
 	# remove trailing slashes
 	while url.endswith("/"):
 		url = url[:-1]
+	# remove starting slashes because ???
+	while url.startswith("/"):
+		url = url[1:]
 		
 	try:
 		# get/store info from page
