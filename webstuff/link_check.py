@@ -100,7 +100,7 @@ def check_links(links, log):
 			code = request.getcode()
 
 			# 2xx is considered a successful request
-			if code >= 200 and code <= 300:
+			if code >= 200 and code <= 299:
 				status = "%d OK" % code
 			else:
 				# increment errors found
