@@ -22,7 +22,7 @@ def parse_args():
 		help="Log results to a file",
 		nargs=1,
 		default=False)
-	
+
 	args = parser.parse_args()
 	links = get_links(args.link[0])
 	
@@ -83,61 +83,60 @@ def get_links(url):
 #	-- links: a list of links
 #	-- log: a file to write the logs to
 def check_links(links, log):
-	links_checked = 0
-	errors_found = 0
-	
-	if log:
-		f = open(log, "w")
-	else:
-		f = None
+    links_checked = 0
+    errors_found = 0
+    bad_links = []
+    
+    if log:
+        f = open(log, "w")
+    else:
+        f = None
 
-	# request each link
-	for link in links:
-		# increment links checked
-		links_checked += 1
+    # request each link
+    for link in links:
+        # increment links checked
+        links_checked += 1
 	
-		requesting = "Requesting " + link
-		print requesting
+        requesting = "Requesting " + link
+        print requesting
 		
-		try:
-			request = urllib2.urlopen(link)
-			code = request.getcode()
+        try:
+            request = urllib2.urlopen(link)
+            code = request.getcode()
 
-			# 2xx is considered a successful request
-			if code >= 200 and code <= 299:
-				status = "%d OK" % code
-			else:
-				# increment errors found
-				errors_found += 1
-				
-				status = "%d ERROR" % code
+            # 2xx is considered a successful request
+            if code >= 200 and code <= 299:
+                status = "%d OK" % code
+            else:
+                # increment errors found
+                errors_found += 1
+                status = "%d ERROR" % code
+                bad_links.append(status + ": " + link)
+                print status + '\n'
 			
-			print status
-			print
+            if f:
+                f.write(requesting + '\n')
+                f.write(status + '\n\n')
 			
-			if f:
-				f.write(requesting + '\n')
-				f.write(status + '\n\n')
-			
-		except urllib2.HTTPError, e:
-			# increment errors found
-			errors_found += 1
-			
-			print e
-			print
+        except urllib2.HTTPError, e:
+            # increment errors found
+            errors_found += 1
+            print "%s\n" % e
+            bad_links.append("%s: %s" % (unicode(e), unicode(link)))
+            if f:
+                f.write(requesting + '\n')
+                f.write("%s\n\n" % e)
 	
-			if f:
-				f.write(requesting + '\n')
-				f.write("%s\n\n" % e)
+    results = "Links checked: %4d" % links_checked
+    errors = "Errors found:  %4d" % errors_found
+    print results
+    print errors
+    for bad_link in bad_links:
+        print bad_link
 	
-	results = "Links checked: %4d" % links_checked
-	errors = "Errors found:  %4d" % errors_found
-	print results
-	print errors
-	
-	if f:
-		f.write(results + '\n')
-		f.write(errors + '\n')
+    if f:
+        f.write(results + '\n')
+        f.write(errors + '\n')
 
 if __name__ == '__main__':
 	parse_args()
