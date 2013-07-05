@@ -23,8 +23,16 @@ def parse_args():
         nargs=1,
         default=False)
 
+    parser.add_argument("--is_sitemap",
+        help="If true, the url passed will be treated as a sitemap to be crawled",
+        nargs=1,
+        default=False)
+
     args = parser.parse_args()
-    main_method(args)
+    if args.is_sitemap:
+        sitemap_method(args)
+    else:
+        main_method(args)
 
 def main_method(args):
     """
@@ -39,6 +47,27 @@ def main_method(args):
             check_links(links, args.log)
     else:
         print "Your specified URL doesn't have any links to check."
+
+def sitemap_method(args):
+    """
+    visits all links on the sitemap page and tests all links on those pages
+    """
+    this_url = args.link[0]
+    links = get_links(this_url)
+    full_results = {}
+
+    if args.log:
+        check_links(links, args.log[0])
+    else:
+        check_links(links, args.log)
+
+    for link in links:
+        links_to_check = get_links(link)
+        if args.log:
+            full_results = check_links(links_to_check, args.log[0])
+        else:
+            full_results[link] = check_links(links_to_check, args.log)
+
 
 def get_links(url):
     """
@@ -61,20 +90,25 @@ def get_links(url):
 
     # format links
     for link in a:
-        href = link["href"]
+        try:
+            href = link["href"]
+        except KeyError:
+            print "horrible failure " + str(link)
+            href = None
 
-        # disregard mailto links and http://# because ???
-        if "mailto:" not in href and "http://#" not in href:
-            # add http to links or else urllib2 will complain
-            if href.startswith("//"):
-                href = "http:" + href
+        if href:
+            # disregard mailto links and http://# because ???
+            if "mailto:" not in href and "http://#" not in href:
+                # add http to links or else urllib2 will complain
+                if href.startswith("//"):
+                    href = "http:" + href
 
-            # href is complete link
-            if "http://" in href or "https://" in href:
-                links.append(href)
-            # href is a relative link
-            else:
-                links.append("/".join([url, href]))
+                # href is complete link
+                if "http://" in href or "https://" in href:
+                    links.append(href)
+                # href is a relative link
+                else:
+                    links.append("/".join([url, href]))
 
     return links
 	
@@ -131,12 +165,12 @@ def check_links(links, log):
     errors = "Errors found:  %4d" % errors_found
     print results
     print errors
-    for bad_link in bad_links:
-        print bad_link
 	
     if f:
         f.write(results + '\n')
         f.write(errors + '\n')
+
+    return bad_links
 
 if __name__ == '__main__':
 	parse_args()
