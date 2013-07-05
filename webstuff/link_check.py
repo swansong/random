@@ -7,11 +7,11 @@ from BeautifulSoup import BeautifulSoup
 import urllib2
 import argparse
 
-#-------------------------------------------------------------------------------
-# parse_args
-#	Parse command-line arguments and calls other methods with appropriate
-#	parameters.
 def parse_args():
+    """
+    takes the arguments from the script call and calls the proper
+    main method based on those arguments
+    """
     parser = argparse.ArgumentParser()
     parser.add_argument("--link",
         help="Check the links on the specified web page",
@@ -27,65 +27,62 @@ def parse_args():
     main_method(args)
 
 def main_method(args):
-	links = get_links(args.link[0])
-	
-	if links:
-		if args.log:
-			check_links(links, args.log[0])
-		else:
-			check_links(links, args.log)
-	else:
-		print "Your specified URL doesn't have any links to check."
+    """
+    standard method that gets all links on a page and checks them
+    """
+    links = get_links(args.link[0])
 
-#-------------------------------------------------------------------------------
-# get_links
-#	Get links from a specified url.
-#	Parameters:
-#	-- url: a url to retrieve links from
-#	Return a list of the links.
+    if links:
+        if args.log:
+            check_links(links, args.log[0])
+        else:
+            check_links(links, args.log)
+    else:
+        print "Your specified URL doesn't have any links to check."
+
 def get_links(url):
-	# remove trailing slashes
-	while url.endswith("/"):
-		url = url[:-1]
-		
-	try:
-		# get/store info from page
-		page = urllib2.urlopen(url)
-	except urllib2.URLError, e:
-		print e
-		return None
-	
-	soup = BeautifulSoup(page.read())
-	a = soup.findAll("a")
-	links = []
+    """
+    takes a url and returns all links on that page
+    """
+    # remove trailing slashes
+    while url.endswith("/"):
+        url = url[:-1]
 
-	# format links
-	for link in a:
-		href = link["href"]
-		
-		# disregard mailto links and http://# because ???
-		if "mailto:" not in href and "http://#" not in href:
-			# add http to links or else urllib2 will complain
-			if href.startswith("//"):
-				href = "http:" + href
-			
-			# href is complete link
-			if "http://" in href or "https://" in href:
-				links.append(href)
-			# href is a relative link
-			else:
-				links.append("/".join([url, href]))
+    try:
+        # get/store info from page
+        page = urllib2.urlopen(url)
+    except urllib2.URLError, e:
+        print e
+        return None
+
+    soup = BeautifulSoup(page.read())
+    a = soup.findAll("a")
+    links = []
+
+    # format links
+    for link in a:
+        href = link["href"]
+
+        # disregard mailto links and http://# because ???
+        if "mailto:" not in href and "http://#" not in href:
+            # add http to links or else urllib2 will complain
+            if href.startswith("//"):
+                href = "http:" + href
+
+            # href is complete link
+            if "http://" in href or "https://" in href:
+                links.append(href)
+            # href is a relative link
+            else:
+                links.append("/".join([url, href]))
+
+    return links
 	
-	return links
-	
-#-------------------------------------------------------------------------------
-# check_links
-#	Check a list of links and print results of requests to stdout.
-#	Optionally, write results to a file.
-#	Parameters:
-#	-- links: a list of links
-#	-- log: a file to write the logs to
 def check_links(links, log):
+    """
+    Check a list of links and print results of requests to stdout.
+    Optionally, write results to a file.
+    """
     links_checked = 0
     errors_found = 0
     bad_links = []
