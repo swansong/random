@@ -12,18 +12,21 @@ import argparse
 #	Parse command-line arguments and calls other methods with appropriate
 #	parameters.
 def parse_args():
-	parser = argparse.ArgumentParser()
-	parser.add_argument("--link",
-		help="Check the links on the specified web page",
-		nargs=1,
-		required=True)
-	
-	parser.add_argument("--log",
-		help="Log results to a file",
-		nargs=1,
-		default=False)
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--link",
+        help="Check the links on the specified web page",
+        nargs=1,
+        required=True)
 
-	args = parser.parse_args()
+    parser.add_argument("--log",
+        help="Log results to a file",
+        nargs=1,
+        default=False)
+
+    args = parser.parse_args()
+    main_method(args)
+
+def main_method(args):
 	links = get_links(args.link[0])
 	
 	if links:
