@@ -85,7 +85,7 @@ def sitemap_method(args):
                 full_results[link] = results
 
     for key in full_results:
-        print "%d bad links on %s" % (len(full_results[key], key))
+        print "%d bad links on %s" % (len(full_results[key]), key)
         for bad_link in full_results[key]:
             print bad_link
             if logfile:
