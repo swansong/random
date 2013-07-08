@@ -6,6 +6,7 @@
 from BeautifulSoup import BeautifulSoup
 import urllib2
 import argparse
+import re
 
 def parse_args():
     """
@@ -33,6 +34,11 @@ def parse_args():
         nargs=1,
         default=None)
 
+    parser.add_argument("--verbose",
+        help="Print out all requests and errors as they happen",
+        nargs=1,
+        default=False)
+
     args = parser.parse_args()
     if args.is_sitemap:
         sitemap_method(args)
@@ -47,9 +53,9 @@ def main_method(args):
 
     if links:
         if args.log:
-            check_links(links, args.log[0])
+            check_links(links, args.log[0], args.verbose)
         else:
-            check_links(links, args.log)
+            check_links(links, args.log, args.verbose)
     else:
         print "Your specified URL doesn't have any links to check."
 
@@ -68,13 +74,13 @@ def sitemap_method(args):
         site_root = ""
 
     if args.log:
-        f = open(logfile, 'w') 
         logfile = args.log[0]
+        f = open(logfile, 'w') 
 
     for link in links:
         if site_root in link:
             links_to_check = get_links(link)
-            results = check_links(links_to_check, logfile)
+            results = check_links(links_to_check, logfile, args.verbose)
             if results:
                 full_results[link] = results
 
@@ -110,6 +116,8 @@ def get_links(url, skip_anchors = False):
     a = soup.findAll("a")
     links = []
 
+    anchor = re.compile('#[a-z]+.+')
+
     # format links
     for link in a:
         try:
@@ -119,7 +127,7 @@ def get_links(url, skip_anchors = False):
             href = None
 
         if href:
-            if not skip_anchors or "/#" not in href:
+            if not skip_anchors or not anchor.match(href):
                 # disregard mailto links and http://# because ???
                 if "mailto:" not in href and "http://#" not in href:
                     # add http to links or else urllib2 will complain
@@ -135,7 +143,7 @@ def get_links(url, skip_anchors = False):
 
     return links
 	
-def check_links(links, log):
+def check_links(links, log, verbose):
     """
     Check a list of links and print results of requests to stdout.
     Optionally, write results to a file.
@@ -156,9 +164,9 @@ def check_links(links, log):
     for link in links:
         # increment links checked
         links_checked += 1
-	
-        #requesting = "Requesting " + link
-        #print requesting
+        if verbose:
+            requesting = "Requesting " + link
+            print requesting
 		
         try:
             request = urllib2.urlopen(link.encode('utf-8'))
@@ -173,18 +181,20 @@ def check_links(links, log):
                 status = "%d ERROR" % code
                 bad_link = status + " -> " + link
                 bad_links.append(bad_link)
-                print bad_link
+                if verbose:
+                    print bad_link
 			
-            if f:
+            if f and verbose:
                 f.write(requesting + '\n')
                 f.write(status + '\n\n')
 			
         except (urllib2.HTTPError, urllib2.URLError), e:
             # increment errors found
             errors_found += 1
-            print ("%s: " % e) + link
+            if verbose:
+                print ("%s: " % e) + link
             bad_links.append("%s -> %s" % (unicode(e), unicode(link)))
-            if f:
+            if f and verbose:
                 f.write(requesting + '\n')
                 f.write("%s\n\n" % e)
 	
