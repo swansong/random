@@ -70,20 +70,24 @@ def sitemap_method(args):
         if site_root in link:
             links_to_check = get_links(link)
             if args.log:
-                full_results = check_links(links_to_check, args.log[0])
+                results = check_links(links_to_check, args.log[0])
             else:
-                full_results[link] = check_links(links_to_check, args.log)
+                results = check_links(links_to_check, args.log)
+            if results:
+                full_results[link] = results
 
     for key in full_results:
-        print "%s: %d errors" % (key, len(full_results[key]))
+        print "%d bad links on %s" % (len(full_results[key], key))
         for bad_link in full_results[key]:
             print bad_link
+        print ""
 
 
 def get_links(url):
     """
     takes a url and returns all links on that page
     """
+    print "getting links for " + url
     # remove trailing slashes
     while url.endswith("/"):
         url = url[:-1]
@@ -104,7 +108,7 @@ def get_links(url):
         try:
             href = link["href"]
         except KeyError:
-            print "horrible failure " + str(link)
+            print "a with no href " + str(link)
             href = None
 
         if href:
@@ -113,13 +117,13 @@ def get_links(url):
                 # add http to links or else urllib2 will complain
                 if href.startswith("//"):
                     href = "http:" + href
-
-                # href is complete link
-                if "http://" in href or "https://" in href:
-                    links.append(href)
-                # href is a relative link
-                else:
-                    links.append("/".join([url, href]))
+                if not "bothell" in href:
+                    # href is complete link
+                    if "http://" in href or "https://" in href:
+                        links.append(href)
+                    # href is a relative link
+                    else:
+                        links.append("/".join([url, href]))
 
     return links
 	
@@ -138,18 +142,18 @@ def check_links(links, log):
         f = None
 
     if not links:
-        return 'no links to check'
+        return None     #no links, ergo no errors
 
     # request each link
     for link in links:
         # increment links checked
         links_checked += 1
 	
-        requesting = "Requesting " + link
-        print requesting
+        #requesting = "Requesting " + link
+        #print requesting
 		
         try:
-            request = urllib2.urlopen(link)
+            request = urllib2.urlopen(link.encode('utf-8'))
             code = request.getcode()
 
             # 2xx is considered a successful request
@@ -159,8 +163,9 @@ def check_links(links, log):
                 # increment errors found
                 errors_found += 1
                 status = "%d ERROR" % code
-                bad_links.append(status + ": " + link)
-                print status + '\n'
+                bad_link = status + " -> " + link
+                bad_links.append(bad_link)
+                print bad_link
 			
             if f:
                 f.write(requesting + '\n')
@@ -169,14 +174,14 @@ def check_links(links, log):
         except (urllib2.HTTPError, urllib2.URLError), e:
             # increment errors found
             errors_found += 1
-            print "%s\n" % e
-            bad_links.append("%s: %s" % (unicode(e), unicode(link)))
+            print ("%s: " % e) + link
+            bad_links.append("%s -> %s" % (unicode(e), unicode(link)))
             if f:
                 f.write(requesting + '\n')
                 f.write("%s\n\n" % e)
 	
     results = "Links checked: %4d" % links_checked
-    errors = "Errors found:  %4d" % errors_found
+    errors = "Errors found: %4d" % errors_found
     print results
     print errors
 	
