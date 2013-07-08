@@ -58,7 +58,7 @@ def sitemap_method(args):
     visits all links on the sitemap page and tests all links on those pages
     """
     this_url = args.link[0]
-    links = get_links(this_url)
+    links = get_links(this_url, True)
     full_results = {}
     logfile = False
 
@@ -90,7 +90,7 @@ def sitemap_method(args):
 
 
 
-def get_links(url):
+def get_links(url, skip_anchors = False):
     """
     takes a url and returns all links on that page
     """
@@ -119,18 +119,19 @@ def get_links(url):
             href = None
 
         if href:
-            # disregard mailto links and http://# because ???
-            if "mailto:" not in href and "http://#" not in href:
-                # add http to links or else urllib2 will complain
-                if href.startswith("//"):
-                    href = "http:" + href
-                if not "bothell" in href:
-                    # href is complete link
-                    if "http://" in href or "https://" in href:
-                        links.append(href)
-                    # href is a relative link
-                    else:
-                        links.append("/".join([url, href]))
+            if not skip_anchors or "/#" not in href:
+                # disregard mailto links and http://# because ???
+                if "mailto:" not in href and "http://#" not in href:
+                    # add http to links or else urllib2 will complain
+                    if href.startswith("//"):
+                        href = "http:" + href
+                    if not "bothell" in href:
+                        # href is complete link
+                        if "http://" in href or "https://" in href:
+                            links.append(href)
+                        # href is a relative link
+                        else:
+                            links.append("/".join([url, href]))
 
     return links
 	
