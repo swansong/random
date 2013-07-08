@@ -60,19 +60,21 @@ def sitemap_method(args):
     this_url = args.link[0]
     links = get_links(this_url)
     full_results = {}
+    logfile = False
 
     if args.site_root:
         site_root = args.site_root[0]
     else:
         site_root = ""
 
+    if args.log:
+        f = open(logfile, 'w') 
+        logfile = args.log[0]
+
     for link in links:
         if site_root in link:
             links_to_check = get_links(link)
-            if args.log:
-                results = check_links(links_to_check, args.log[0])
-            else:
-                results = check_links(links_to_check, args.log)
+            results = check_links(links_to_check, logfile)
             if results:
                 full_results[link] = results
 
@@ -80,7 +82,12 @@ def sitemap_method(args):
         print "%d bad links on %s" % (len(full_results[key], key))
         for bad_link in full_results[key]:
             print bad_link
-        print ""
+            if logfile:
+                f.write(bad_link + '\n')
+        print "\n"
+        if logfile:
+            f.write("\n")
+
 
 
 def get_links(url):
