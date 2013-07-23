@@ -1,7 +1,7 @@
 # Link Check goes through a URL, requests every link on the page, and prints
 #	out the requested links and their respective status codes. It can also
-#	write the results to a text or log file.
-# By Jeff Chheng
+#	write the results to a text or log file.  It can also crawl a sitemap
+# By Jeff Chheng and Jon Swanson
 
 from BeautifulSoup import BeautifulSoup
 import urllib2
@@ -67,10 +67,11 @@ def sitemap_method(args):
     links = get_links(this_url, True)
     full_results = {}
     logfile = False
+    checked_links = []
 
     if args.site_root:
         site_root = args.site_root[0]
-    else:
+    else: #no site root given, follow all links and check those pages' links
         site_root = ""
 
     if args.log:
@@ -79,18 +80,20 @@ def sitemap_method(args):
 
     for link in links:
         if site_root in link:
-            links_to_check = get_links(link)
-            results = check_links(links_to_check, logfile, args.verbose)
-            if results:
-                full_results[link] = results
+            if not link in checked_links:
+                links_to_check = get_links(link)
+                results = check_links(links_to_check, logfile, args.verbose)
+                if results:
+                    full_results[link] = results
+                checked_links.append(link)
 
     for key in full_results:
         print "%d bad links on %s" % (len(full_results[key]), key)
+        f.write("%d bad links on %s\n" % (len(full_results[key]), key))
         for bad_link in full_results[key]:
             print bad_link
             if logfile:
-                f.write(bad_link + '\n')
-        print "\n"
+                f.write(bad_link.encode("utf-8") + '\n')
         if logfile:
             f.write("\n")
 
@@ -117,6 +120,7 @@ def get_links(url, skip_anchors = False):
     links = []
 
     anchor = re.compile('#[a-z]+.+')
+    jscript = re.compile('javascript:')
 
     # format links
     for link in a:
@@ -128,12 +132,13 @@ def get_links(url, skip_anchors = False):
 
         if href:
             if not skip_anchors or not anchor.match(href):
-                # disregard mailto links and http://# because ???
-                if "mailto:" not in href and "http://#" not in href:
-                    # add http to links or else urllib2 will complain
-                    if href.startswith("//"):
-                        href = "http:" + href
-                    if not "bothell" in href:
+                # ignore hrefs that have javascript: in them because we cant execute it
+                if not jscript.match(href):
+                    # disregard mailto links and http://# because ???
+                    if "mailto:" not in href and "http://#" not in href:
+                        # add http to links or else urllib2 will complain
+                        if href.startswith("//"):
+                            href = "http:" + href
                         # href is complete link
                         if "http://" in href or "https://" in href:
                             links.append(href)
@@ -203,7 +208,7 @@ def check_links(links, log, verbose):
     print results
     print errors
 	
-    if f:
+    if f and verbose:
         f.write(results + '\n')
         f.write(errors + '\n')
 
